@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Car Speed Estimation</title>
+    <style>
+        #video-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 50px;
+        }
+        #video {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid black;
+        }
+        #output {
+            text-align: center;
+            font-size: 24px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Car Speed Estimation</h1>
+    <div id="video-container">
+        <img id="video" src="{{ url_for('video_feed') }}" alt="Video Stream">
+    </div>
+    <div id="output"></div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            var outputDiv = $('#output');
+
+            function updateOutput(speed) {
+                outputDiv.text('Estimated Speed: ' + speed + ' km/hr');
+            }
+
+            var source = new EventSource('/video_feed');
+            source.addEventListener('message', function(event) {
+                var img = $('#video');
+                img.attr('src', 'data:image/jpeg;base64,' + event.data);
+
+                if (event.lastEventId) {
+                    updateOutput(event.lastEventId);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
