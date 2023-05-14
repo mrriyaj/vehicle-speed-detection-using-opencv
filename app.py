@@ -2,6 +2,7 @@ import cv2
 import dlib
 import math
 import time
+import os
 from flask import Flask, render_template, Response
 import configparser
 
@@ -16,6 +17,10 @@ WIDTH = 1280
 HEIGHT = 720
 line_pos1 = 400
 line_pos2 = 180
+output_folder = 'captured_cars/'
+
+if not os.path.exists(output_folder):
+    os.makedirs(output_folder)
 
 def estimateSpeed(location1, location2, fps, ppm):
     x1, y1 = location1
@@ -40,6 +45,10 @@ def draw_lines(image):
     # Draw the two lines on the image
     cv2.line(image, (0, line_pos1), (WIDTH, line_pos1), (0, 0, 255), 2)
     cv2.line(image, (0, line_pos2), (WIDTH, line_pos2), (0, 0, 255), 2)
+
+def save_captured_car(carID, speed, image):
+    filename = f"{output_folder}car{carID}_speed{speed:.2f}.jpg"
+    cv2.imwrite(filename, image)
 
 def trackMultipleObjects():
     rectangleColor = (0, 255, 0)
@@ -133,6 +142,10 @@ def trackMultipleObjects():
 
                 # Check if the car crosses Line 1
                 if y1 + h1 >= line_pos1 and y1 <= line_pos1:
+                    if carID in speed:
+                        # Save the captured car image
+                        save_captured_car(carID, speed[carID], resultImage)
+
                     cv2.putText(resultImage, "Crossed Line 1", (int(x1 + w1/2), int(y1 + h1 + 60)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
 
                 # Check if the car crosses Line 2
@@ -168,3 +181,5 @@ def video_feed():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+
